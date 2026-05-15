@@ -22,25 +22,19 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
-      - name: Install Capacitor
-        run: npm install @capacitor/core @capacitor/cli @capacitor/android
-
-      - name: Create capacitor config
+      - name: Install Dependencies
         run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
           echo '{"appId":"com.tasks.app","appName":"Tasks","webDir":"public","bundledWebRuntime":false}' > capacitor.config.json
+          mkdir -p public && cp index.html manifest.json sw.js public/
+          npx cap add android
 
-      - name: Create public directory
-        run: mkdir -p public && cp index.html manifest.json sw.js public/
-
-      - name: Add Android platform
-        run: npx cap add android
-
-      - name: Copy assets to android
+      - name: Copy assets
         run: |
           mkdir -p android/app/src/main/assets/public
           cp public/* android/app/src/main/assets/public/
 
-      - name: Configure gradle.properties
+      - name: Configure gradle
         run: |
           cd android
           cat > gradle.properties << 'EOF'
@@ -51,19 +45,11 @@ android.nonTransitiveRClass=false
 kotlin.code.style=official
 EOF
 
-      - name: Fix build.gradle with dependency resolution
-        run: |
-          cd android
-          # Read the current build.gradle
-          cat app/build.gradle
-
-      - name: Modify app/build.gradle with force resolution
+      - name: Add dependency resolution
         run: |
           cd android/app
-          # Add resolution strategy to force consistent kotlin version
-          cat >> build.gradle << 'GRADLE'
+          cat >> build.gradle << 'EOF'
 
-// Force consistent Kotlin stdlib version
 configurations.all {
     resolutionStrategy {
         force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
@@ -72,14 +58,13 @@ configurations.all {
         force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
     }
 }
-GRADLE
+EOF
 
       - name: Build APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tail -50
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: tasks-app.apk

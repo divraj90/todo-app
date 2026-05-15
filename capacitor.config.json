@@ -1,6 +1,0 @@
-{
-  "appId": "com.tasks.app",
-  "appName": "Tasks",
-  "webDir": ".",
-  "bundledWebRuntime": false
-}

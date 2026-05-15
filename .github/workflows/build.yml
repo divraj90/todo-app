@@ -40,11 +40,23 @@ jobs:
           mkdir -p android/app/src/main/assets/public
           cp public/* android/app/src/main/assets/public/
 
-      - name: Fix Kotlin version conflict
+      - name: Fix Kotlin version conflict - add gradle config
         run: |
           cd android
-          echo "android.useAndroidX=true" >> gradle.properties
-          echo "kotlin.stdlib.default.dependency=false" >> gradle.properties
+          cat >> gradle.properties << 'EOF'
+  android.useAndroidX=true
+  android.enableJetifier=true
+  kotlin.stdlib.default.dependency=false
+  android.nonTransitiveRClass=false
+EOF
+          # Add dependency resolution to build.gradle
+          sed -i 's/plugins {/plugins {\n    id("com.android.application") version "8.2.0"/' app/build.gradle
+          cat >> app/build.gradle << 'EOF'
+configurations.all {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
+EOF
 
       - name: Build APK
         working-directory: android

@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -19,8 +21,9 @@ jobs:
       - name: Install Capacitor
         run: npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Initialize Capacitor
-        run: npx cap init "Tasks" "com.tasks.app" --web-dir=. --skip-git
+      - name: Create capacitor config
+        run: |
+          echo '{"appId":"com.tasks.app","appName":"Tasks","webDir":".","bundledWebRuntime":false}' > capacitor.config.json
 
       - name: Add Android platform
         run: npx cap add android

@@ -6,23 +6,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          node-version: '20'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
+      - name: Install Capacitor
+        run: npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Copy web assets
+      - name: Initialize Capacitor
+        run: npx cap init "Tasks" "com.tasks.app" --web-dir=. --skip-git
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Copy assets
         run: |
           mkdir -p android/app/src/main/assets/public
-          cp index.html manifest.json android/app/src/main/assets/public/
+          cp index.html manifest.json sw.js android/app/src/main/assets/public/
 
       - name: Build APK
         working-directory: android
@@ -31,5 +37,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug.apk
+          name: tasks-app.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk

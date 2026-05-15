@@ -21,17 +21,20 @@ jobs:
       - name: Install Capacitor
         run: npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Create capacitor config
+      - name: Create capacitor config with proper webDir
         run: |
-          echo '{"appId":"com.tasks.app","appName":"Tasks","webDir":".","bundledWebRuntime":false}' > capacitor.config.json
+          echo '{"appId":"com.tasks.app","appName":"Tasks","webDir":"public","bundledWebRuntime":false}' > capacitor.config.json
+
+      - name: Create public directory
+        run: mkdir -p public && cp index.html manifest.json sw.js public/
 
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Copy assets
+      - name: Copy assets to android
         run: |
           mkdir -p android/app/src/main/assets/public
-          cp index.html manifest.json sw.js android/app/src/main/assets/public/
+          cp public/* android/app/src/main/assets/public/
 
       - name: Build APK
         working-directory: android
